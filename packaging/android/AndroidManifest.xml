@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- CADCraft for Android: a NativeActivity that loads libcadcraft_android.so
+     (apps/cadcraft-android); its subclass CadCraftActivity (java/) keeps the latest intent,
+     colours the system bars and installs updates. Built by build-apk.sh. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ai.storyteller.cadcraft">
+
+    <!-- The in-app file browser lists shared storage by path; granted once in Settings ▸ Apps ▸
+         ⋮ ▸ Special access ▸ All files access (the browser's Allow access… button opens it). -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+
+    <!-- Updates (updater.rs): the release listing and APK from GitHub, then installing it, which
+         Android confirms with the user each time. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
+    <application
+        android:label="CADCraft"
+        android:icon="@mipmap/ic_launcher"
+        android:hasCode="true"
+        android:extractNativeLibs="true"
+        android:resizeableActivity="true"
+        android:appCategory="productivity">
+
+        <!-- configChanges: attaching the keyboard cover, rotating, or resizing in split screen
+             must not recreate the activity (that would restart the app and its event loop). -->
+        <activity
+            android:name="ai.storyteller.cadcraft.CadCraftActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Material.NoActionBar"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|density|uiMode|fontScale|locale|layoutDirection">
+            <meta-data android:name="android.app.lib_name" android:value="cadcraft_android" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Open with CADCraft, and CADCraft as the default app for drawings (incoming.rs). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="image/vnd.dwg" />
+                <data android:mimeType="image/x-dwg" />
+                <data android:mimeType="application/acad" />
+                <data android:mimeType="application/x-acad" />
+                <data android:mimeType="application/autocad_dwg" />
+                <data android:mimeType="application/dwg" />
+                <data android:mimeType="application/x-dwg" />
+                <data android:mimeType="application/x-autocad" />
+                <data android:mimeType="image/vnd.dxf" />
+                <data android:mimeType="image/x-dxf" />
+                <data android:mimeType="application/dxf" />
+                <data android:mimeType="application/x-dxf" />
+                <data android:mimeType="image/svg+xml" />
+            </intent-filter>
+            <!-- File managers that know no type for .dwg and .dxf send a generic one: match those
+                 by name. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:host="*" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:pathPattern=".*\\.dwg" />
+                <data android:pathPattern=".*\\.DWG" />
+                <data android:pathPattern=".*\\.dxf" />
+                <data android:pathPattern=".*\\.DXF" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

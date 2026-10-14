@@ -24,6 +24,9 @@ pub fn route(app: &mut CadApp, id: &str) -> Result<Value, String> {
             Ok(Value::Null)
         }
         "import" | "imp" => {
+            if app.pick_later(None, |app, path| report(app, app_run(app, "import", path))) {
+                return Ok(Value::Null);
+            }
             let Some(pick) = app.services.pick_open.as_ref() else { return no_picker(app, "IMPORT", r#"import {"path": "parts.dxf"}"#) };
             match pick() {
                 Some(path) => app.run("import", json!({ "path": path })),
@@ -31,6 +34,9 @@ pub fn route(app: &mut CadApp, id: &str) -> Result<Value, String> {
             }
         }
         "publish" => {
+            if app.pick_later(Some(format!("{stem}.pdf")), |app, path| report(app, app_run(app, "publish", path))) {
+                return Ok(Value::Null);
+            }
             let Some(pick) = app.services.pick_save.as_ref() else { return no_picker(app, "PUBLISH", "publish {}") };
             match pick(&format!("{stem}.pdf")) {
                 Some(path) => app.run("publish", json!({ "path": path })),
@@ -38,12 +44,28 @@ pub fn route(app: &mut CadApp, id: &str) -> Result<Value, String> {
             }
         }
         _ => {
+            if app.pick_later(Some(format!("{stem}.svg")), |app, path| report(app, app_run(app, "export", path))) {
+                return Ok(Value::Null);
+            }
             let Some(pick) = app.services.pick_save.as_ref() else { return no_picker(app, "EXPORT", r#"export {"format": "svg"}"#) };
             match pick(&format!("{stem}.svg")) {
                 Some(path) => app.run("export", json!({ "path": path })),
                 None => Ok(Value::Null),
             }
         }
+    }
+}
+
+/// `id` with the picked `path`, as the blocking pickers run it.
+fn app_run(app: &mut CadApp, id: &str, path: String) -> Result<Value, String> {
+    app.run(id, json!({ "path": path }))
+}
+
+/// An asynchronous pick's command ran after the frame that asked: its error is shown, since no
+/// caller is left to return it to.
+fn report(app: &mut CadApp, r: Result<Value, String>) {
+    if let Err(e) = r {
+        app.set_status(e);
     }
 }
 
@@ -176,6 +198,7 @@ mod tests {
                 b.borrow_mut().push(name.to_string());
                 None
             })),
+            pick_async: None,
         };
         (CadApp::new(Session::new(), services), asked)
     }

@@ -19,6 +19,19 @@ pub fn route(app: &mut CadApp, id: &str, params: &Value) -> Option<Result<Value,
     match cadcraft_engine::cmd::resolve_alias(id).as_str() {
         "xref" => Some(open_palette(app)),
         "xattach" => {
+            let attach = |app: &mut CadApp, picked: String| -> Result<Value, String> {
+                let path = relative_to_host(app, &picked);
+                app.session.start("xattach").map_err(|e| e.to_string())?;
+                app.cmdline(&path);
+                Ok(Value::Null)
+            };
+            if app.pick_later(None, move |app, picked| {
+                if let Err(e) = attach(app, picked) {
+                    app.set_status(e);
+                }
+            }) {
+                return Some(Ok(Value::Null));
+            }
             let picked = app.services.pick_open.as_ref().and_then(|f| f())?;
             let path = relative_to_host(app, &picked);
             if let Err(e) = app.session.start("xattach") {

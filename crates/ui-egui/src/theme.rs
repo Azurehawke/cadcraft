@@ -328,6 +328,8 @@ pub fn install_fonts(ctx: &egui::Context, language: &str) {
                 "/usr/share/fonts/TTF/DejaVuSans.ttf",
                 "/usr/share/fonts/noto/NotoSans-Regular.ttf",
                 "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+                // Android
+                "/system/fonts/Roboto-Regular.ttf",
             ]
         };
         for path in candidates {
@@ -427,6 +429,8 @@ pub fn cjk_font() -> Option<&'static std::path::Path> {
                         "/usr/share/fonts/wqy-microhei/wqy-microhei.ttc",
                         "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
                         "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",
+                        // Android
+                        "/system/fonts/NotoSansCJK-Regular.ttc",
                     ]
                 };
                 candidates.iter().map(std::path::PathBuf::from).find(|p| p.is_file())

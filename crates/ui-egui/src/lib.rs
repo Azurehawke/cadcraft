@@ -188,7 +188,24 @@ impl Default for UiState {
 pub struct Services {
     pub pick_open: Option<Box<dyn Fn() -> Option<String>>>,
     pub pick_save: Option<Box<dyn Fn(&str) -> Option<String>>>,
+    /// A host whose file dialogs can't block the frame (Android: the picker is drawn in the
+    /// app, a frame at a time). Used when the blocking pickers above are both `None`: the app
+    /// keeps what the pick was for ([`CadApp::pick_later`]) and the host answers with
+    /// [`CadApp::finish_pick`] once the user has chosen (or cancelled).
+    pub pick_async: Option<Box<dyn Fn(PickRequest)>>,
 }
+
+/// A file the app asks an asynchronous host picker for ([`Services::pick_async`]).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum PickRequest {
+    /// An existing file to open, import or attach.
+    Open,
+    /// Where to save, given a suggested file name (its extension says the type).
+    Save { name: String },
+}
+
+/// What to do with the path an asynchronous pick returns.
+pub type AfterPick = Box<dyn FnOnce(&mut CadApp, String)>;
 
 pub struct CadApp {
     pub system_languages: Vec<String>,
@@ -243,6 +260,8 @@ pub struct CadApp {
     pub hatch_dlg: Option<hatchdlg::HatchDlgState>,
     /// The Edit Block Definition dialog ([`bedit`]).
     pub bedit: bedit::State,
+    /// What an asynchronous file pick is for, while the host's picker is open ([`Services::pick_async`]).
+    pub pick_pending: Option<AfterPick>,
 }
 
 impl CadApp {
@@ -254,6 +273,7 @@ impl CadApp {
             ui: UiState::default(),
             options: options::UiOptions::default(),
             services,
+            pick_pending: None,
             canvas: canvas::CanvasState::default(),
             spacemouse: spacemouse::State::default(),
             cmd: cmdline::CmdLine::default(),
@@ -402,6 +422,37 @@ impl CadApp {
         }
         if let Some(files) = v.get("recentFiles").and_then(Value::as_array) {
             self.ui.recent_files = files.iter().filter_map(Value::as_str).filter(|p| !p.is_empty()).take(RECENT_FILES).map(str::to_string).collect();
+        }
+    }
+
+    /// Whether the host has any file picker, blocking or asynchronous.
+    pub fn has_picker(&self, save: bool) -> bool {
+        (if save { self.services.pick_save.is_some() } else { self.services.pick_open.is_some() }) || self.services.pick_async.is_some()
+    }
+
+    /// With an asynchronous host picker (and no blocking one), ask it for a file and keep `then`
+    /// for its answer; `true` when asked. Call sites try this first and otherwise use the
+    /// blocking picker as before. A pick still open is given up (as cancelled).
+    pub fn pick_later(&mut self, save_name: Option<String>, then: impl FnOnce(&mut CadApp, String) + 'static) -> bool {
+        let blocking = if save_name.is_some() { self.services.pick_save.is_some() } else { self.services.pick_open.is_some() };
+        if blocking {
+            return false;
+        }
+        let Some(ask) = self.services.pick_async.as_ref() else { return false };
+        ask(match save_name {
+            Some(name) => PickRequest::Save { name },
+            None => PickRequest::Open,
+        });
+        self.pick_pending = Some(Box::new(then));
+        true
+    }
+
+    /// The host's answer to [`Self::pick_later`]: do what the pick was for with `path`
+    /// (`None`: cancelled, nothing happens).
+    pub fn finish_pick(&mut self, path: Option<String>) {
+        let Some(then) = self.pick_pending.take() else { return };
+        if let Some(path) = path {
+            then(self, path);
         }
     }
 

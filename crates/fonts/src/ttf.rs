@@ -232,6 +232,9 @@ fn scan() -> HashMap<String, PathBuf> {
         if let Some(l) = std::env::var_os("LOCALAPPDATA") {
             dirs.push(PathBuf::from(l).join("Microsoft\\Windows\\Fonts"));
         }
+    } else if cfg!(target_os = "android") {
+        // Roboto, Noto (the scripts, CJK) and the device maker's own fonts.
+        dirs.extend(["/system/fonts", "/product/fonts"].map(Into::into));
     } else {
         dirs.extend(["/usr/share/fonts", "/usr/local/share/fonts"].map(Into::into));
         if let Some(h) = std::env::var_os("HOME") {

@@ -113,6 +113,7 @@ fn linetype(app: &mut CadApp, ctx: &egui::Context, open: &mut bool) -> Action {
     let library: Vec<String> = cadcraft_doc::library::standard_linetypes().into_iter().map(|l| l.name).filter(|n| d.linetype(n).is_none()).collect();
     let mut sel = temp::<String>(ctx, "ltmgr_sel").filter(|s| rows.iter().any(|r| r.0.eq_ignore_ascii_case(s))).unwrap_or_else(|| current.clone());
     let mut action = None;
+    let mut lin_from_file = false;
     egui::Window::new("Linetype Manager").open(open).default_size(vec2(520.0, 360.0)).resizable(true).show(ctx, |ui| {
         ui.horizontal(|ui| {
             egui::ComboBox::from_id_salt("ltmgr_load").selected_text("Load...").width(110.0).show_ui(ui, |ui| {
@@ -127,12 +128,18 @@ fn linetype(app: &mut CadApp, ctx: &egui::Context, open: &mut bool) -> Action {
                     }
                 }
                 // The user's own .lin file (where the host has a file picker).
-                if let Some(pick) = app.services.pick_open.as_ref() {
+                if app.has_picker(false) {
                     ui.separator();
-                    if ui.selectable_label(false, "From File...").clicked()
-                        && let Some(path) = pick()
-                    {
-                        action = Some(("linetype", json!({ "load": "*", "file": path })));
+                    if ui.selectable_label(false, "From File...").clicked() {
+                        match app.services.pick_open.as_ref() {
+                            Some(pick) => {
+                                if let Some(path) = pick() {
+                                    action = Some(("linetype", json!({ "load": "*", "file": path })));
+                                }
+                            }
+                            // An asynchronous picker: asked once the window is drawn.
+                            None => lin_from_file = true,
+                        }
                     }
                 }
             });
@@ -179,6 +186,13 @@ fn linetype(app: &mut CadApp, ctx: &egui::Context, open: &mut bool) -> Action {
         });
     });
     set_temp(ctx, "ltmgr_sel", sel);
+    if lin_from_file {
+        app.pick_later(None, |app, path| {
+            if let Err(e) = app.run("linetype", json!({ "load": "*", "file": path })) {
+                app.set_status(e);
+            }
+        });
+    }
     action
 }
 
@@ -1029,10 +1043,27 @@ fn plot(app: &mut CadApp, ctx: &egui::Context, open: &mut bool) -> Action {
     }
     if ok {
         let mut params = plot_params(&st, None);
+        let title = app.session.state().map(|s| s.title.clone()).unwrap_or_default();
+        let stem = std::path::Path::new(&title).file_stem().map(|s| s.to_string_lossy().to_string()).filter(|s| !s.is_empty());
+        let suggested = format!("{}-{}.{ext}", stem.unwrap_or_else(|| "Drawing".into()), st.target);
+        let target = st.target.clone();
+        let later_params = params.clone();
+        // An asynchronous picker: the dialog closes, and the plot runs once a file is chosen.
+        if app.pick_later(Some(suggested.clone()), move |app, path| {
+            let mut params = later_params;
+            if let Some(o) = params.as_object_mut() {
+                o.insert("path".into(), json!(path));
+            }
+            if let Ok(r) = app.run("plot", params)
+                && let Some(path) = r.get("path").and_then(Value::as_str)
+            {
+                app.session.echo(format!("Plotted {target} to {path}"));
+            }
+        }) {
+            *open = false;
+            return action;
+        }
         if let Some(pick) = app.services.pick_save.as_ref() {
-            let title = app.session.state().map(|s| s.title.clone()).unwrap_or_default();
-            let stem = std::path::Path::new(&title).file_stem().map(|s| s.to_string_lossy().to_string()).filter(|s| !s.is_empty());
-            let suggested = format!("{}-{}.{ext}", stem.unwrap_or_else(|| "Drawing".into()), st.target);
             // Cancelling the file dialog keeps the Plot dialog open with its settings.
             let Some(path) = pick(&suggested) else { return action };
             if let Some(o) = params.as_object_mut() {
