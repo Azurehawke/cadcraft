@@ -24,7 +24,7 @@ pub fn route(app: &mut CadApp, id: &str) -> Result<Value, String> {
             Ok(Value::Null)
         }
         "import" | "imp" => {
-            if app.pick_later(None, |app, path| report(app, app_run(app, "import", path))) {
+            if app.pick_later(None, |app, path| run_picked(app, "import", path)) {
                 return Ok(Value::Null);
             }
             let Some(pick) = app.services.pick_open.as_ref() else { return no_picker(app, "IMPORT", r#"import {"path": "parts.dxf"}"#) };
@@ -34,7 +34,7 @@ pub fn route(app: &mut CadApp, id: &str) -> Result<Value, String> {
             }
         }
         "publish" => {
-            if app.pick_later(Some(format!("{stem}.pdf")), |app, path| report(app, app_run(app, "publish", path))) {
+            if app.pick_later(Some(format!("{stem}.pdf")), |app, path| run_picked(app, "publish", path)) {
                 return Ok(Value::Null);
             }
             let Some(pick) = app.services.pick_save.as_ref() else { return no_picker(app, "PUBLISH", "publish {}") };
@@ -44,7 +44,7 @@ pub fn route(app: &mut CadApp, id: &str) -> Result<Value, String> {
             }
         }
         _ => {
-            if app.pick_later(Some(format!("{stem}.svg")), |app, path| report(app, app_run(app, "export", path))) {
+            if app.pick_later(Some(format!("{stem}.svg")), |app, path| run_picked(app, "export", path)) {
                 return Ok(Value::Null);
             }
             let Some(pick) = app.services.pick_save.as_ref() else { return no_picker(app, "EXPORT", r#"export {"format": "svg"}"#) };
@@ -56,15 +56,10 @@ pub fn route(app: &mut CadApp, id: &str) -> Result<Value, String> {
     }
 }
 
-/// `id` with the picked `path`, as the blocking pickers run it.
-fn app_run(app: &mut CadApp, id: &str, path: String) -> Result<Value, String> {
-    app.run(id, json!({ "path": path }))
-}
-
-/// An asynchronous pick's command ran after the frame that asked: its error is shown, since no
-/// caller is left to return it to.
-fn report(app: &mut CadApp, r: Result<Value, String>) {
-    if let Err(e) = r {
+/// `id` with the path an asynchronous pick returned, as the blocking pickers run it. It runs
+/// after the frame that asked, so its error is shown: no caller is left to return it to.
+fn run_picked(app: &mut CadApp, id: &str, path: String) {
+    if let Err(e) = app.run(id, json!({ "path": path })) {
         app.set_status(e);
     }
 }
