@@ -1,0 +1,49 @@
+== libcadcraft_android.so
+warning: Environment variable `ANDROID_NDK_HOME = "/usr/local/lib/android/sdk/ndk/30.0.16248370"` doesn't match `ANDROID_NDK_ROOT = "/usr/local/lib/android/sdk/ndk/27.3.13750724"`
+    Building arm64-v8a (aarch64-linux-android)
+[1m[92m    Updating[0m crates.io index
+[1m[92m     Locking[0m 19 packages to highest Rust 1.95 compatible versions
+[1m[92m      Adding[0m aho-corasick v1.1.5
+[1m[92m      Adding[0m android_log-sys v0.3.2
+[1m[92m      Adding[0m android_logger v0.15.1
+[1m[92m      Adding[0m cesu8 v1.1.0
+[1m[92m      Adding[0m env_filter v0.1.4
+[1m[92m      Adding[0m jni v0.21.1 [1m[33m(available: v0.22.4)[0m
+[1m[92m      Adding[0m regex v1.13.1
+[1m[92m      Adding[0m regex-automata v0.4.18
+[1m[92m      Adding[0m regex-syntax v0.8.11
+[1m[92m      Adding[0m windows-sys v0.45.0
+[1m[92m      Adding[0m windows-targets v0.42.2
+[1m[92m      Adding[0m windows_aarch64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_aarch64_msvc v0.42.2
+[1m[92m      Adding[0m windows_i686_gnu v0.42.2
+[1m[92m      Adding[0m windows_i686_msvc v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnu v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_x86_64_msvc v0.42.2
+[1m[92m      Adding[0m winit v0.30.13 (/home/runner/work/cadcraft/cadcraft/vendor/winit)
+[1m[92m   Compiling[0m cadcraft-geom v0.10.0 (/home/runner/work/cadcraft/cadcraft/crates/geom)
+[1m[92m   Compiling[0m winit v0.30.13 (/home/runner/work/cadcraft/cadcraft/vendor/winit)
+[1m[92m   Compiling[0m cadcraft-color v0.10.0 (/home/runner/work/cadcraft/cadcraft/crates/color)
+[1m[92m   Compiling[0m cadcraft-fonts v0.10.0 (/home/runner/work/cadcraft/cadcraft/crates/fonts)
+[1m[92m   Compiling[0m cadcraft-dxf v0.10.0 (/home/runner/work/cadcraft/cadcraft/crates/dxf)
+[1m[92m   Compiling[0m cadcraft-ui-egui v0.10.0 (/home/runner/work/cadcraft/cadcraft/crates/ui-egui)
+[1m[92m   Compiling[0m cadcraft-dwg v0.10.0 (/home/runner/work/cadcraft/cadcraft/crates/dwg)
+[1m[92m   Compiling[0m cadcraft-doc v0.10.0 (/home/runner/work/cadcraft/cadcraft/crates/doc)
+[1m[92m   Compiling[0m egui-wgpu v0.36.2
+[1m[92m   Compiling[0m cadcraft-render v0.10.0 (/home/runner/work/cadcraft/cadcraft/crates/render)
+[1m[92m   Compiling[0m cadcraft-constraints v0.10.0 (/home/runner/work/cadcraft/cadcraft/crates/constraints)
+[1m[92m   Compiling[0m cadcraft-engine v0.10.0 (/home/runner/work/cadcraft/cadcraft/crates/engine)
+[1m[92m   Compiling[0m egui-winit v0.36.2
+[1m[92m   Compiling[0m eframe v0.36.2
+[1m[92m   Compiling[0m cadcraft-io v0.10.0 (/home/runner/work/cadcraft/cadcraft/crates/io)
+[1m[92m   Compiling[0m cadcraft-android v0.10.0 (/home/runner/work/cadcraft/cadcraft/apps/cadcraft-android)
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 2m 07s
+     Copying libraries to /home/runner/work/cadcraft/cadcraft/target/android-apk/jniLibs
+== resources and manifest
+== activity class
+Note: /home/runner/work/cadcraft/cadcraft/packaging/android/java/ai/storyteller/cadcraft/CadCraftActivity.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+== native library
+== align and sign
+-rw-r--r-- 1 runner runner 18035304 Oct 21 12:56 /home/runner/work/cadcraft/cadcraft/target/android-apk/cadcraft.apk
