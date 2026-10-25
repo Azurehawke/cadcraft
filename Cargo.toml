@@ -66,6 +66,10 @@ arboard = { version = "3.6", default-features = false }
 krilla = { version = "=0.8.2", git = "https://github.com/storytold/craft-libs", rev = "6e7f28518dd1cb57e1624bdc269c3c14316b13ae" }
 hayro-syntax = { git = "https://github.com/storytold/craft-libs", rev = "6e7f28518dd1cb57e1624bdc269c3c14316b13ae" }
 hayro-jbig2 = { git = "https://github.com/storytold/craft-libs", rev = "6e7f28518dd1cb57e1624bdc269c3c14316b13ae" }
+# Android: each touch carries its tool (finger, S Pen, eraser, mouse, palm) and a paired mouse or
+# touchpad works as a mouse (apps/cadcraft-android); vendored, see vendor/README.md. From
+# PdfCraft's Android port.
+winit = { path = "vendor/winit" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
@@ -89,9 +93,3 @@ opt-level = 3
 lto = "thin"
 codegen-units = 16
 debug = 0
-
-# Vendored, patched third-party crates (see vendor/README.md).
-[patch.crates-io]
-# Android: each touch carries its tool (finger, S Pen, eraser, mouse, palm) and a paired mouse or
-# touchpad works as a mouse (apps/cadcraft-android). From PdfCraft's Android port.
-winit = { path = "vendor/winit" }
