@@ -210,7 +210,9 @@ fn android_main(android: AndroidApp) {
                 app.set_wgpu(rs, eframe::egui_wgpu::depth_format_from_bits(0, STENCIL_BITS));
             }
             if app.session.docs.is_empty() {
-                app.session.new_drawing(false);
+                // Metric or imperial as the saved setting says (MEASUREINIT), as on the desktop.
+                let metric = app.session.settings.measureinit;
+                app.session.new_drawing(metric);
             }
             Ok(Box::new(tablet::TabletApp::new(app, slot, workspace, shell_android)))
         }),
