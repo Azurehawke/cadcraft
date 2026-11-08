@@ -178,7 +178,7 @@ fn android_main(android: AndroidApp) {
         Box::new(move |cc| {
             let slot = PickSlot::default();
             let mut app = CadApp::new(Session::empty(), services(&slot));
-            let (workspace, restored, workspace_error) = workspace::Workspace::load();
+            let (workspace, restored, workspace_error) = workspace::Workspace::load(CONFIG_DIR.get().map(PathBuf::as_path));
             if let Some(ui) = restored {
                 app.ui = ui;
             }

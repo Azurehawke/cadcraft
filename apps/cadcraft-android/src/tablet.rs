@@ -74,7 +74,7 @@ impl TabletApp {
     }
 
     fn persist_workspace(&mut self) {
-        if let Err(e) = self.workspace.save_if_changed(&self.cad.ui) {
+        if let Err(e) = self.workspace.save_if_changed(&self.cad.ui, std::time::Instant::now()) {
             log::warn!("workspace not saved: {e}");
         }
     }
@@ -119,7 +119,7 @@ impl TabletApp {
             }
         };
         log::info!("opening {path}");
-        self.cad.open_path(&path);
+        self.cad.open_path(Path::new(&path));
     }
 
     /// Colour the status bar and taskbar `color`, with dark icons on a light colour and light
@@ -225,7 +225,7 @@ impl eframe::App for TabletApp {
             ctx.request_repaint_after(std::time::Duration::from_millis(50));
         }
         Self::system_paste(raw);
-        self.cad.raw_input_hook(raw);
+        self.cad.raw_input_hook(ctx, raw);
         cadcraft_ui_egui::cmdline::capture_tab(ctx, raw);
     }
 
