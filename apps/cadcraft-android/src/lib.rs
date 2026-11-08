@@ -152,7 +152,7 @@ fn android_main(android: AndroidApp) {
     install_io();
     let shell_android = android.clone();
 
-    let surface = cadcraft_ui_egui::gpu::surface_config(None, false);
+    let surface = cadcraft_ui_egui::gpu::surface_config(cadcraft_ui_egui::switch::Switch::Default, false);
     let mut options = eframe::NativeOptions {
         android_app: Some(android),
         renderer: eframe::Renderer::Wgpu,

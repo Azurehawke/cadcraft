@@ -21,6 +21,7 @@ fn insert(block: &str) -> Insert {
         rows: 1,
         col_spacing: 0.0,
         row_spacing: 0.0,
+        clip: None,
     }
 }
 
@@ -86,8 +87,10 @@ const GRAY: Color = Color::Index(8);
 fn exports_both_drawings_as_colored_groups_in_a_new_drawing() {
     let mut s = compared();
     let before = s.docs.len();
+    let before_epoch = s.doc_epoch;
     let source = s.doc().unwrap().clone();
     let r = s.execute("compareexport", &json!({})).unwrap();
+    assert!(s.doc_epoch > before_epoch, "opening the exported drawing invalidates queued captures");
     assert_eq!(s.docs.len(), before + 1, "{r}");
     assert_eq!(r["title"], "compare_B vs Drawing1.dwg", "{r}");
     assert_eq!(s.state().unwrap().title, "compare_B vs Drawing1.dwg");
@@ -312,6 +315,7 @@ fn a_named_block_whose_dimension_draws_another_block_shows_the_other_definition(
         overrides: Default::default(),
         assoc: Vec::new(),
         marks: Default::default(),
+        insertion_point: Vec3::ZERO,
     };
     let blocks = |dim_end: f64, first: u64| {
         let mut part = Block::new("PART");
@@ -398,6 +402,7 @@ fn a_named_block_whose_dimension_block_has_another_generated_name_keeps_this_dra
             overrides: Default::default(),
             assoc: Vec::new(),
             marks: Default::default(),
+            insertion_point: Vec3::ZERO,
         };
         let mut part = Block::new("PART");
         part.entities.push(Entity::new(Handle(first), EntityKind::Dimension(dim)));
@@ -512,6 +517,7 @@ fn a_dimension_block_copy_keeps_its_geometry_when_the_snapshot_is_saved() {
         overrides: Default::default(),
         assoc: Vec::new(),
         marks: Default::default(),
+        insertion_point: Vec3::ZERO,
     };
     let mut s = Session::new();
     let mut drawn = Block::new("*D1");
@@ -831,6 +837,7 @@ fn a_dimension_whose_block_is_past_the_nesting_limit_is_drawn_again() {
         overrides: Default::default(),
         assoc: Vec::new(),
         marks: Default::default(),
+        insertion_point: Vec3::ZERO,
     };
     for k in 1..=MAX_BLOCK_DEPTH {
         let mut b = Block::new(&format!("B{k}"));
